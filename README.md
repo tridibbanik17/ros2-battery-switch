@@ -75,8 +75,13 @@ By default the UI node reads from **battery_1**.
 Open a **second terminal** and run:
 
 ```bash
-# In the new terminal, source first
+# In the new terminal, enter the workspace
+cd battery_switch_ws
+
+# Load base ROS 2 framework
 source /opt/ros/jazzy/setup.bash
+
+# Load this workspace's packages
 source install/setup.bash
 
 # Switch to battery_2
