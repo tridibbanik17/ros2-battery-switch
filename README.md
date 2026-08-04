@@ -16,10 +16,10 @@ battery_2  →  /battery_2/status  ─┘
 
 ```bash
 # Verify your installation
-ros2 --version
+printenv ROS_DISTRO
 ```
 
-If not installed, follow the [official ROS 2 Jazzy install guide](https://docs.ros.org/en/jazzy/Installation.html).
+Should print `jazzy`. If not installed, follow the [official ROS 2 Jazzy install guide](https://docs.ros.org/en/jazzy/Installation.html).
 
 ### 2. colcon and rosdep
 
