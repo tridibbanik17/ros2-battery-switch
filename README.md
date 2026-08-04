@@ -156,3 +156,65 @@ The UI node exposes a ROS 2 parameter called `active_battery`. When you call `ro
 | Subscriber | `ui_node` subscribes and swaps the subscription on switch |
 | Parameter | `active_battery` drives the switch; `initial_charge` sets per-instance start value |
 | Launch file | Brings up all 3 nodes with a single command |
+
+---
+
+## Verified system behaviour
+
+The following was observed after a full build and launch, confirming everything works as designed.
+
+### 3 nodes, 2 topics
+
+```bash
+$ ros2 node list
+/battery_1
+/battery_2
+/ui_node
+
+$ ros2 topic list
+/battery_1/status
+/battery_2/status
+/parameter_events
+/rosout
+```
+
+- 3 nodes total: two instances of `battery_node` and one `ui_node`.
+- Each battery node owns exactly one topic.
+- `/parameter_events` and `/rosout` are standard ROS 2 system topics, always present.
+
+### Switching batteries
+
+```bash
+$ ros2 param set /ui_node active_battery battery_1
+Set parameter successful
+
+$ ros2 param get /ui_node active_battery
+String value is: battery_1
+```
+
+The UI node immediately unsubscribes from the previous battery and subscribes to the new one. No restart needed.
+
+### UI node parameters
+
+```bash
+$ ros2 param list /ui_node
+active_battery
+start_type_description_service
+use_sim_time
+```
+
+- `active_battery` — your custom parameter that controls which battery the UI node reads from.
+- `use_sim_time` and `start_type_description_service` — standard ROS 2 built-ins, present on every node.
+
+### Battery discharge to zero
+
+When `ros2 topic echo /battery_1/status` or `/battery_2/status` shows `data: 0.0`, it means the battery has fully discharged. This is expected — the simulated charge decreases by a small random amount every second and clamps at 0. Relaunch the nodes to reset the charge to the initial values defined in the launch file.
+
+### Full system summary
+
+```
+/battery_1  →  publishes /battery_1/status  (Float32, 1 Hz)
+/battery_2  →  publishes /battery_2/status  (Float32, 1 Hz)
+/ui_node    →  subscribes to exactly one of the above at a time
+               controlled by the active_battery parameter
+```
