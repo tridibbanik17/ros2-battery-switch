@@ -166,16 +166,16 @@ The following was observed after a full build and launch, confirming everything 
 ### 3 nodes, 2 topics
 
 ```bash
-$ ros2 node list
-/battery_1
-/battery_2
-/ui_node
+ros2 node list
+# /battery_1
+# /battery_2
+# /ui_node
 
-$ ros2 topic list
-/battery_1/status
-/battery_2/status
-/parameter_events
-/rosout
+ros2 topic list
+# /battery_1/status
+# /battery_2/status
+# /parameter_events
+# /rosout
 ```
 
 - 3 nodes total: two instances of `battery_node` and one `ui_node`.
@@ -185,11 +185,11 @@ $ ros2 topic list
 ### Switching batteries
 
 ```bash
-$ ros2 param set /ui_node active_battery battery_1
-Set parameter successful
+ros2 param set /ui_node active_battery battery_1
+# Set parameter successful
 
-$ ros2 param get /ui_node active_battery
-String value is: battery_1
+ros2 param get /ui_node active_battery
+# String value is: battery_1
 ```
 
 The UI node immediately unsubscribes from the previous battery and subscribes to the new one. No restart needed.
@@ -197,10 +197,10 @@ The UI node immediately unsubscribes from the previous battery and subscribes to
 ### UI node parameters
 
 ```bash
-$ ros2 param list /ui_node
-active_battery
-start_type_description_service
-use_sim_time
+ros2 param list /ui_node
+# active_battery
+# start_type_description_service
+# use_sim_time
 ```
 
 - `active_battery` — your custom parameter that controls which battery the UI node reads from.
