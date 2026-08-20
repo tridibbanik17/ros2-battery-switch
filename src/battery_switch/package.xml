@@ -4,12 +4,11 @@
   <name>battery_switch</name>
   <version>0.0.1</version>
   <description>Two battery nodes with a UI node that can switch between them.</description>
-  <maintainer email="you@example.com">Your Name</maintainer>
+  <maintainer email="tridib.perfect@gmail.com">Tridib Banik</maintainer>
   <license>Apache-2.0</license>
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>std_srvs</exec_depend>
   <exec_depend>rcl_interfaces</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
