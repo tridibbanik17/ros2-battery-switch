@@ -3,45 +3,51 @@ battery_switch.launch.py
 ------------------------
 Launches two battery node instances and one UI node.
 
-Node graph:
-  battery_1  (battery_node instance)  →  publishes on /battery_1/status
-  battery_2  (battery_node instance)  →  publishes on /battery_2/status
-  ui_node                             →  subscribes to one of the above at a time
+Node graph::
+
+    battery_1  (BatteryNode instance)  →  publishes /battery_1/status
+    battery_2  (BatteryNode instance)  →  publishes /battery_2/status
+    ui_node                            →  subscribes to one of the above at a time
 """
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+# ---------------------------------------------------------------------------
+# Launch configuration
+# ---------------------------------------------------------------------------
 
-def generate_launch_description():
-    battery_1 = Node(
-        package='battery_switch',
+PACKAGE_NAME: str = 'battery_switch'
+
+BATTERY_CONFIGS: list[dict] = [
+    {'name': 'battery_1', 'initial_charge': 90.0},
+    {'name': 'battery_2', 'initial_charge': 60.0},
+]
+
+DEFAULT_ACTIVE_BATTERY: str = 'battery_1'
+
+
+def _create_battery_node(config: dict) -> Node:
+    """Create a battery node action from a configuration dict."""
+    return Node(
+        package=PACKAGE_NAME,
         executable='battery_node',
-        name='battery_1',           # sets the ROS node name → topic becomes battery_1/status
-        parameters=[
-            {'initial_charge': 90.0}   # battery 1 starts at 90%
-        ],
+        name=config['name'],
+        parameters=[{'initial_charge': config['initial_charge']}],
         output='screen',
     )
 
-    battery_2 = Node(
-        package='battery_switch',
-        executable='battery_node',
-        name='battery_2',           # sets the ROS node name → topic becomes battery_2/status
-        parameters=[
-            {'initial_charge': 60.0}   # battery 2 starts at 60%
-        ],
-        output='screen',
-    )
 
-    ui = Node(
-        package='battery_switch',
+def generate_launch_description() -> LaunchDescription:
+    """Build and return the launch description for the battery switch system."""
+    battery_nodes = [_create_battery_node(cfg) for cfg in BATTERY_CONFIGS]
+
+    ui_node = Node(
+        package=PACKAGE_NAME,
         executable='ui_node',
         name='ui_node',
-        parameters=[
-            {'active_battery': 'battery_1'}   # start reading from battery_1
-        ],
+        parameters=[{'active_battery': DEFAULT_ACTIVE_BATTERY}],
         output='screen',
     )
 
-    return LaunchDescription([battery_1, battery_2, ui])
+    return LaunchDescription([*battery_nodes, ui_node])
