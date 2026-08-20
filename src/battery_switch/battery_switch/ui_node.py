@@ -4,41 +4,46 @@ ui_node.py
 User Interface node that reads from one active battery at a time.
 
 - Subscribes to the currently active battery's status topic.
-- Exposes a service /switch_battery that accepts a target battery name
-  (e.g. "battery_1" or "battery_2") and switches the subscription.
+- Exposes a ROS 2 parameter ``active_battery`` that controls which battery
+  topic the node subscribes to.
 - Only one battery subscription is active at any given moment.
+
+Switching is triggered by setting the parameter at runtime::
+
+    ros2 param set /ui_node active_battery battery_2
 """
 
 import rclpy
+from rcl_interfaces.msg import SetParametersResult
 from rclpy.node import Node
+from rclpy.subscription import Subscription
 from std_msgs.msg import Float32
-from std_srvs.srv import SetBool
 
-# We use a custom-ish approach: the service request carries the target battery name
-# via a string. Since ROS 2 built-in services don't have a string request by default,
-# we use the rcl_interfaces SetParametersAtomically or a simple workaround:
-# we declare the target as a node parameter and use the std_srvs/Trigger pattern.
-# For clarity we use rcl_interfaces/srv/SetParameters via parameter events,
-# but the simplest approach for a beginner is to use a parameter + parameter event.
-#
-# SIMPLEST APPROACH: expose a ROS 2 parameter "active_battery" that the user
-# can set via:  ros2 param set /ui_node active_battery battery_2
-# The node watches for parameter changes and re-subscribes accordingly.
-# This avoids defining a custom service interface for the first project.
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+DEFAULT_NODE_NAME: str = 'ui_node'
+DEFAULT_ACTIVE_BATTERY: str = 'battery_1'
+TOPIC_SUFFIX: str = 'status'
+QUEUE_SIZE: int = 10
 
 
 class UINode(Node):
-    def __init__(self):
-        super().__init__('ui_node')
+    """Reads charge data from the currently active battery and logs it."""
+
+    def __init__(self) -> None:
+        super().__init__(DEFAULT_NODE_NAME)
 
         # Parameter: which battery is currently active
-        self.declare_parameter('active_battery', 'battery_1')
-        self._active_battery = (
+        self.declare_parameter('active_battery', DEFAULT_ACTIVE_BATTERY)
+        self._active_battery: str = (
             self.get_parameter('active_battery').get_parameter_value().string_value
         )
 
-        # Current subscription handle (we'll replace it on switch)
-        self._subscription = None
+        # Current subscription handle (replaced on switch)
+        self._subscription: Subscription | None = None
         self._subscribe_to(self._active_battery)
 
         # Watch for parameter changes (this is how "switching" is triggered)
@@ -57,26 +62,29 @@ class UINode(Node):
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _subscribe_to(self, battery_name: str):
-        """Destroy the old subscription and create a new one for battery_name."""
-        # Destroy previous subscription if it exists
+    def _build_topic_name(self, battery_name: str) -> str:
+        """Construct the full topic path for a given battery name."""
+        return f'{battery_name}/{TOPIC_SUFFIX}'
+
+    def _subscribe_to(self, battery_name: str) -> None:
+        """Destroy the old subscription and create a new one for *battery_name*."""
         if self._subscription is not None:
             self.destroy_subscription(self._subscription)
             self.get_logger().info(
-                f'Unsubscribed from "{self._active_battery}/status"'
+                f'Unsubscribed from "{self._build_topic_name(self._active_battery)}"'
             )
 
-        topic = f'{battery_name}/status'
+        topic: str = self._build_topic_name(battery_name)
         self._subscription = self.create_subscription(
             Float32,
             topic,
             self._battery_callback,
-            10,
+            QUEUE_SIZE,
         )
         self._active_battery = battery_name
         self.get_logger().info(f'Now subscribed to "{topic}"')
 
-    def _battery_callback(self, msg: Float32):
+    def _battery_callback(self, msg: Float32) -> None:
         """Called every time the active battery publishes a new reading."""
         self.get_logger().info(
             f'[UI] Active battery "{self._active_battery}" → charge: {msg.data:.2f}%'
@@ -86,12 +94,11 @@ class UINode(Node):
     # Parameter change callback (the "switch" mechanism)
     # ------------------------------------------------------------------
 
-    def _on_parameter_change(self, params):
-        from rcl_interfaces.msg import SetParametersResult
-
+    def _on_parameter_change(self, params: list) -> SetParametersResult:
+        """React to runtime parameter updates — switch subscription if needed."""
         for param in params:
             if param.name == 'active_battery':
-                new_battery = param.value
+                new_battery: str = param.value
                 if new_battery == self._active_battery:
                     self.get_logger().info(
                         f'Already reading from "{new_battery}", no change.'
@@ -105,7 +112,8 @@ class UINode(Node):
         return SetParametersResult(successful=True)
 
 
-def main(args=None):
+def main(args: list[str] | None = None) -> None:
+    """Entry point for the ui_node executable."""
     rclpy.init(args=args)
     node = UINode()
     try:
