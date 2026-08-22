@@ -124,17 +124,21 @@ ros2 param get /ui_node active_battery
 ## Project structure
 
 ```
-battery_switch_ws/
-  src/
-    battery_switch/
-      battery_switch/
-        battery_node.py       # Reusable battery node — launched as two instances
-        ui_node.py            # UI node — subscribes to one battery at a time
-      launch/
-        battery_switch.launch.py  # Starts all 3 nodes in one command
-      package.xml
-      setup.py
-      setup.cfg
+├── src/
+│   └── battery_switch/
+│       ├── battery_switch/
+│       │   ├── __init__.py
+│       │   ├── battery_node.py
+│       │   └── ui_node.py
+│       ├── launch/
+│       │   └── battery_switch.launch.py
+│       ├── resource/
+│       │   └── battery_switch
+│       ├── package.xml
+│       ├── setup.cfg
+│       └── setup.py
+├── .gitignore
+└── README.md
 ```
 
 ---
