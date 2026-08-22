@@ -34,7 +34,7 @@ sudo apt install python3-rosdep python3-colcon-common-extensions -y
 
 ```bash
 # 1. Enter the workspace
-cd battery_switch_ws
+cd ros2-battery-switch
 
 # 2. Source ROS 2
 source /opt/ros/jazzy/setup.bash
