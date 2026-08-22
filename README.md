@@ -76,7 +76,7 @@ Open a **second terminal** and run:
 
 ```bash
 # In the new terminal, enter the workspace
-cd battery_switch_ws
+cd ros2-battery-switch
 
 # Load base ROS 2 framework
 source /opt/ros/jazzy/setup.bash
@@ -176,6 +176,29 @@ ros2 topic list
 # /battery_2/status
 # /parameter_events
 # /rosout
+
+ros2 service list
+# /battery_1/describe_parameters
+# /battery_1/get_parameter_types
+# /battery_1/get_parameters
+# /battery_1/get_type_description
+# /battery_1/list_parameters
+# /battery_1/set_parameters
+# /battery_1/set_parameters_atomically
+# /battery_2/describe_parameters
+# /battery_2/get_parameter_types
+# /battery_2/get_parameters
+# /battery_2/get_type_description
+# /battery_2/list_parameters
+# /battery_2/set_parameters
+# /battery_2/set_parameters_atomically
+# /ui_node/describe_parameters
+# /ui_node/get_parameter_types
+# /ui_node/get_parameters
+# /ui_node/get_type_description
+# /ui_node/list_parameters
+# /ui_node/set_parameters
+# /ui_node/set_parameters_atomically
 ```
 
 - 3 nodes total: two instances of `battery_node` and one `ui_node`.
