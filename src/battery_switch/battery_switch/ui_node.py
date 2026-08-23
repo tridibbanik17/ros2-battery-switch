@@ -114,17 +114,24 @@ class UINode(Node):
 
 def main(args: list[str] | None = None) -> None:
     """Entry point for the ui_node executable."""
+    # 1. Initialize rclpy
     rclpy.init(args=args)
+    # 2. Instantiate the node
     node = UINode()
     try:
+        # rclpy.spin(node) performs three key functions:
+        # 1. Event Loop: Continuously checks for incoming middleware events.
+        # 2. Callback Management: Routes events directly to user-defined functions like _battery_callback() or _on_parameter_change().
+        # 3. Thread Blocking: Keeps script alive until shutdown or Ctrl+C.
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
+        # 4. Clean up after spin exits (e.g., via Ctrl+C)
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
-
+          
 
 if __name__ == '__main__':
     main()
